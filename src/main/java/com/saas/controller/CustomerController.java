@@ -27,6 +27,17 @@ import com.saas.repository.CustomerRepository;
 public class CustomerController {
 	@Autowired
 	CustomerRepository customerRepository;
+
+	@GetMapping("/customers")
+	List<Customer> all() {
+		return customerRepository.findAll();
+	}
+
+	@PostMapping("/customers")
+	Customer newCustomer(@RequestBody Customer newCustomer) {
+		return customerRepository.save(newCustomer);
+	}
+
 	@GetMapping("/customers")
 	public ResponseEntity<List<Customer>> getAllCustomers(@RequestParam(required = false) String title) {
 		try {
@@ -43,6 +54,7 @@ public class CustomerController {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+
 	@GetMapping("/customers/{id}")
 	public ResponseEntity<Customer> getCustomerById(@PathVariable("id") long id) {
 		Optional<Customer> customerData = customerRepository.findById(id);
@@ -52,17 +64,18 @@ public class CustomerController {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	} // (String customerName, Long capital, double rate, LocalDate purchaseDate)
+
 	@PostMapping("/customers")
 	public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
 		try {
-			Customer _customer = customerRepository
-					.save(new Customer(customer.getCustomerName(), customer.getCapital(),
-							customer.getRate(), customer.getPurchaseDate()));
+			Customer _customer = customerRepository.save(new Customer(customer.getCustomerName(), customer.getCapital(),
+					customer.getRate(), customer.getPurchaseDate()));
 			return new ResponseEntity<>(_customer, HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+
 	@PutMapping("/customers/{id}")
 	public ResponseEntity<Customer> updateCustomer(@PathVariable("id") long id, @RequestBody Customer customer) {
 		Optional<Customer> customerData = customerRepository.findById(id);
@@ -77,6 +90,7 @@ public class CustomerController {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
+
 	@DeleteMapping("/customers/{id}")
 	public ResponseEntity<HttpStatus> deleteCustomer(@PathVariable("id") long id) {
 		try {
@@ -86,6 +100,7 @@ public class CustomerController {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+
 	@DeleteMapping("/customers")
 	public ResponseEntity<HttpStatus> deleteAllCustomers() {
 		try {
@@ -95,6 +110,7 @@ public class CustomerController {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+
 	@GetMapping("/customers/published")
 	public ResponseEntity<List<Customer>> findByPublished() {
 		try {

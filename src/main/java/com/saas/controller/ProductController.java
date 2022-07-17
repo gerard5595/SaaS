@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.saas.entity.Customer;
 import com.saas.entity.Product;
 import com.saas.repository.ProductRepository;
 
@@ -27,8 +28,19 @@ import com.saas.repository.ProductRepository;
 public class ProductController {
 	@Autowired
 	ProductRepository productRepository;
-	@GetMapping("/manufacturers")
-	public ResponseEntity<List<Product>> getAllManufacturers(@RequestParam(required = false) String title) {
+
+	@GetMapping("/products")
+	List<Product> all() {
+		return productRepository.findAll();
+	}
+
+	@PostMapping("/products")
+	Product newProduct(@RequestBody Product newProduct) {
+		return productRepository.save(newProduct);
+	}
+
+	@GetMapping("/products")
+	public ResponseEntity<List<Product>> getAllProducts(@RequestParam(required = false) String title) {
 		try {
 			List<Product> products = new ArrayList<Product>();
 			if (title == null)
@@ -43,7 +55,8 @@ public class ProductController {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	@GetMapping("/manufacturers/{id}")
+
+	@GetMapping("/products/{id}")
 	public ResponseEntity<Product> getTutorialById(@PathVariable("id") long id) {
 		Optional<Product> productData = productRepository.findById(id);
 		if (productData.isPresent()) {
@@ -52,36 +65,57 @@ public class ProductController {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
-	@PostMapping("/manufacturers")
+
+	@PostMapping("/products")
 	public ResponseEntity<Product> createTutorial(@RequestBody Product product) {
 		try {
-			Product _product = productRepository
-					.save(new Product(product.getProductName(), product.getPrice(), product.getRate(),
-							product.isPublished(), product.isAuthorized(),
-							product.getPurchaseDate(), product.getReleaseDate()));
+			Product _product = productRepository.save(
+					new Product(product.getProductName(), product.getPrice(), product.getRate(), product.isPublished(),
+							product.isAuthorized(), product.getPurchaseDate(), product.getReleaseDate()));
 			return new ResponseEntity<>(_product, HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-	} 
-	@PutMapping("/manufacturers/{id}")
-	public ResponseEntity<Product> updateTutorial(@PathVariable("id") long id, @RequestBody Product product) {
-		Optional<Product> productData = productRepository.findById(id);
-		if (productData.isPresent()) {
-			Product _product = productData.get();
-			_product.setProductName(product.getProductName());
-			_product.setPrice(product.getPrice());
-			_product.setRate(product.getRate());
-			_product.setPublished(product.isPublished());
-			_product.setAuthorized(product.isAuthorized());
-			_product.setPurchaseDate(product.getPurchaseDate());
-			_product.setReleaseDate(product.getReleaseDate());
-			return new ResponseEntity<>(productRepository.save(_product), HttpStatus.OK);
-		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}
 	}
-	@DeleteMapping("/manufacturers/{id}")
+	
+	 @PutMapping("/products/{id}")
+	 Product replaceProduct(@RequestBody Product newProduct, @PathVariable Long id) {
+	    return productRepository.findById(id)
+	      .map(_product -> {
+	    	  _product.setProductName(_product.getProductName());
+				_product.setPrice(_product.getPrice());
+				_product.setRate(_product.getRate());
+				_product.setPublished(_product.isPublished());
+				_product.setAuthorized(_product.isAuthorized());
+				_product.setPurchaseDate(_product.getPurchaseDate());
+				_product.setReleaseDate(_product.getReleaseDate());
+	        return productRepository.save(_product);
+	      })
+	      .orElseGet(() -> {
+	        newProduct.setId(id);
+	        return productRepository.save(newProduct);
+	      });
+	  }
+
+//	@PutMapping("/products/{id}")
+//	public ResponseEntity<Product> updateTutorial(@PathVariable("id") long id, @RequestBody Product product) {
+//		Optional<Product> productData = productRepository.findById(id);
+//		if (productData.isPresent()) {
+//			Product _product = productData.get();
+//			_product.setProductName(product.getProductName());
+//			_product.setPrice(product.getPrice());
+//			_product.setRate(product.getRate());
+//			_product.setPublished(product.isPublished());
+//			_product.setAuthorized(product.isAuthorized());
+//			_product.setPurchaseDate(product.getPurchaseDate());
+//			_product.setReleaseDate(product.getReleaseDate());
+//			return new ResponseEntity<>(productRepository.save(_product), HttpStatus.OK);
+//		} else {
+//			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//		}
+//	}
+
+	@DeleteMapping("/products/{id}")
 	public ResponseEntity<HttpStatus> deleteTutorial(@PathVariable("id") long id) {
 		try {
 			productRepository.deleteById(id);
@@ -90,7 +124,8 @@ public class ProductController {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	@DeleteMapping("/manufacturers")
+
+	@DeleteMapping("/products")
 	public ResponseEntity<HttpStatus> deleteAllTutorials() {
 		try {
 			productRepository.deleteAll();
@@ -99,7 +134,8 @@ public class ProductController {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	@GetMapping("/manufacturers/published")
+
+	@GetMapping("/products/published")
 	public ResponseEntity<List<Product>> findByPublished() {
 		try {
 			List<Product> products = productRepository.findByPublished(true);
